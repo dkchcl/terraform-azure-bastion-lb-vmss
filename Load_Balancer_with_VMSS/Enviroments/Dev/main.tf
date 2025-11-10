@@ -57,16 +57,16 @@ module "public_ip2" {
   public_ip_name = "dev-pip-bastion"
 }
 
-module "bastion_host" {
-  depends_on     = [module.subnet2, module.public_ip2]
-  source         = "../../Modules/azurerm_bastion_host"
-  rg_name        = module.rg.rg_name
-  location       = "EastUs"
-  subnet_name    = "AzureBastionSubnet"
-  vnet_name      = module.vnet.vnet_name
-  public_ip_name = "dev-pip-bastion"
-  bastion_name   = "dev-bastion"
-}
+# module "bastion_host" {
+#   depends_on     = [module.subnet2, module.public_ip2]
+#   source         = "../../Modules/azurerm_bastion_host"
+#   rg_name        = module.rg.rg_name
+#   location       = "EastUs"
+#   subnet_name    = "AzureBastionSubnet"
+#   vnet_name      = module.vnet.vnet_name
+#   public_ip_name = "dev-pip-bastion"
+#   bastion_name   = "dev-bastion"
+# }
 
 # module "kv" {
 #   depends_on     = [module.rg]
@@ -86,46 +86,20 @@ module "bastion_host" {
 # }
 
 module "lb" {
-  depends_on     = [module.public_ip1]
-  source         = "../../Modules/azurerm_load_balancer"
-  rg_name        = module.rg.rg_name
-  location       = "EastUs"
-  lb_name        = "dev-lb"
-  public_ip_name = "dev-pip-lb"
-}
-
-module "lb_backend_address_pool" {
-  depends_on                = [module.lb]
-  source                    = "../../Modules/azurerm_lb_backend_address_pool"
-  rg_name                   = module.rg.rg_name
-  location                  = "EastUs"
-  lb_name                   = "dev-lb"
-  backend_address_pool_name = "dev-lb-backend-pool"
-
-}
-
-module "lb_probe" {
-  depends_on    = [module.lb]
-  source        = "../../Modules/azurerm_lb_probe"
-  lb_name       = "dev-lb"
-  lb_probe_name = "tcp-probe-001"
-  rg_name       = module.rg.rg_name
-}
-
-module "lb_rule" {
-  depends_on                     = [module.lb, module.lb_backend_address_pool, module.lb_probe]
-  source                         = "../../Modules/azurerm_lb_rule"
+  depends_on                     = [module.public_ip1]
+  source                         = "../../Modules/azurerm_load_balancer"
+  rg_name                        = module.rg.rg_name
+  location                       = "EastUs"
   lb_name                        = "dev-lb"
+  public_ip_name                 = "dev-pip-lb"
+  backend_address_pool_name      = "dev-lb-backend-pool"
+  lb_probe_name                  = "tcp-probe-001"
   lb_rule_name                   = "http-rule-001"
   frontend_ip_configuration_name = "PublicFrontEnd"
-  rg_name                        = module.rg.rg_name
-  lb_probe_name                  = "tcp-probe-001"
-  backend_address_pool_name      = "dev-lb-backend-pool"
-  probe_id                       = module.lb_probe.lb_probe_id
 }
 
 module "vmss" {
-  depends_on                = [module.subnet1, module.nsg, module.lb, module.lb_backend_address_pool, module.lb_rule]
+  depends_on                = [module.subnet1, module.nsg, module.lb,]
   source                    = "../../Modules/azurerm_vmss"
   rg_name                   = module.rg.rg_name
   location                  = "EastUs"
